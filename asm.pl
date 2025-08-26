@@ -141,8 +141,9 @@ sub trans_a_line {
     ^
     (\w+)                       # operator
     \s*([\w+-.]+)               # first operand
-    (?=(?:\s*,\s*[\w+-.]+)*     # check the other operands and comment syntax
-     (?:\s*;(?:.*)|\s*$))
+    (?=(?: \s*,\s*[\w+-.]+)*    # check the other operands and comment syntax
+       (?: \s*;.*$              # and check the comment
+         | \s*$))               # and if no comment, it should be end of line
     ([\s\w,+-.]*)               # the other operands
     (?:;.*)?                    # optional comment
     $
