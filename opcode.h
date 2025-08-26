@@ -32,4 +32,5 @@ OPCODE(UDIV) // div(reg_t, reg_t) regs[$1], regs[overflow] (/, %)= regs[$2]
 OPCODE(IDIV)
 OPCODE(FDIV) // div(freg_t, freg_t) regs[$1] /= regs[$2]
 OPCODE(CALL) // call(ureg_t, ureg_t) regs[$1] = regs[$2](current_machine)
+             // well, this is actually system call
 OPCODE(STOP) // STOP(ureg_t) stop the machine, return regs[$1]
