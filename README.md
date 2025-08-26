@@ -7,7 +7,7 @@ To build the virtual machine, use `make vm`.
 To clean the directory, use `make clean`.
 
 ## FILES
-- Makefile -- well, the Makefile, see make(3);
+- Makefile -- well, the Makefile, see make(1);
 - opcode.h -- x-macro and description for opcodes;
 - README -- this file;
 - switch.h -- a _thread code_ style `switch` statement defnition;
