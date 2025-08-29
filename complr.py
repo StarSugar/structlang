@@ -598,13 +598,13 @@ def parse_toplevel(s):
             eat_word('WHILE');
             expect_eat_spaces_and_check_empty("BEGIN ... END WHILE ...;");
             cond = parse_expr();
-            expect_eat_spaces_or_smei_and_check_empty();
+            eat_spaces_and_check_empty()
             return BeginWhileSttmt(lc, sttmts, cond);
         elif s.startswith('UNTIL'):
             eat_word('UNTIL');
             expect_eat_spaces_and_check_empty('BEGIN ... END UNTIL ...;');
             cond = parse_expr();
-            expect_eat_spaces_or_smei_and_check_empty();
+            eat_spaces_and_check_empty()
             return BeginUntilSttmt(lc, sttmts, cond);
         else:
             die(f"Bad BEGIN END @ {line_count}");
@@ -1150,6 +1150,10 @@ PROGRAM test;
       print(x+ y + a +b +c)
     a()
     b()
+    BEGIN
+      print(a)
+      a := a + 1
+    END WHILE a < 100
   END;
 VOID
 ''')
