@@ -31,12 +31,12 @@ We suggest the heap be at least 1024 bytes after the stack, and grow upward.
 ### CALLING CONVENTION
 All registers not used as argument register are callee-saved.
 
-In function calls, `r7` always stores the [static chain](https://devblogs.microsoft.com/oldnewthing/20231204-00/?p=109095); `r3`~`r6` pass the first four integer arguments, and real arguments come in via `x0`~`x7`. Any object larger than two bytes is passed by its pointer and treated as an extra integer argument, which follows all ordinary integer arguments. The remaining integer arguments and real arguments, with two bytes arguments, are pushed onto the stack in reversed order: integers first, then reals, finally two-byte arguments.
+In function calls, `r7` always stores the [static chain](https://devblogs.microsoft.com/oldnewthing/20231204-00/?p=109095); `r3`-`r6` pass the first four integer arguments, and real arguments come in via `x0`-`x7`. Any object larger than two bytes is passed by its pointer and treated as an extra integer argument, which follows all ordinary integer arguments. The remaining integer arguments and real arguments, with two bytes arguments, are pushed onto the stack in reversed order: integers first, then reals, finally two-byte arguments.
 
 Functions produce integers to `r3`, and output reals to `x0`. After ordinary integers and objects larger than two bytes, the caller have to pass an extra pointer, which points to a place with enough space for the callee to stores results larger than two bytes into.
 
 ### C CALL
-The ABI for calling **C** functions is same as calling general functions except that standard **C** functions don't accept any value larger than one byte, and r7 is the location of a **C** function in virtual machine memory.
+The ABI for calling **C** functions is same as calling general functions except that standard **C** functions don't accept any value larger than one byte, and r7 is the location of a **C** function in virtual machine Memory.
 
 | C Call List | Position in Memory | Argument List                    | Result       | Description                                                                                                                                                                                                                                                                                                                                                          |
 |:-----------:|:------------------:|:---------------------------------|:-------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
