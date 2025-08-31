@@ -37,6 +37,7 @@ struct machine {
   double    fregs[8];
   uint64_t *mem;
   size_t    memlen;
+  size_t    imglen;
 };
 
 #endif /* VM_H_ */

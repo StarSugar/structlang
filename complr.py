@@ -13,6 +13,51 @@ def die(x):
     print(x, file=sys.stderr)
     sys.exit(1)
 
+def remove_comment(text):
+    def append1():
+        nonlocal i, text, res
+        if text[i] == '$':
+            f = elim;
+        elif text[i] == '"':
+            f = str;
+        else:
+            res += text[i]
+    def elim():
+        nonlocal i, text
+        if text[i] == '(':
+            f = open_cmt(')$');
+        elif text[i] == '[':
+            f = open_cmt(']$');
+        elif text[i] == '{':
+            f = open_cmt('}$');
+        else:
+            f = line;
+    def open_cmt(which):
+        def step():
+            nonlocal text, which
+            if text.startswith(which):
+                return close_cmt();
+        return step
+    def close_cmt():
+        nonlocal i, text
+        i += 1;
+        f = append1;
+    def line():
+        nonlocal i, text
+        if text[i] == '\n':
+            f = append1;
+    def str():
+        nonlocal i, text
+        if text.startswith('\\"'):
+            i += 1;
+        elif text[i] == '"':
+            f = append1;
+    i = 0; f = append1; res = ""
+    while i < len(text):
+        f();
+        i += 1;
+    return res;
+
 SPACES = tuple(string.whitespace)
 
 @dataclass
@@ -29,6 +74,10 @@ class Array(Syntax):
     type: Type
 
 @dataclass
+class Vector(Syntax):
+    type: Type
+
+@dataclass
 class Pointer(Syntax):
     type: Type
 
@@ -38,7 +87,7 @@ class Record(Syntax):
 
 @dataclass
 class Type(Syntax):
-    type: Array | Pointer | Record | IDInLib | ID
+    type: Array | Vector | Pointer | Record | IDInLib | ID
 
 @dataclass
 class ID(Syntax):
@@ -59,7 +108,7 @@ class StrLit(Syntax):
 @dataclass
 class ArrAccessExpr(Syntax):
     base: Expr
-    idx: Expr
+    idx: List[Expr]
 
 @dataclass
 class CallExpr(Syntax):
@@ -466,6 +515,15 @@ def parse_toplevel(s):
         expect_eat_spaces_and_check_empty("ARRAY");
         type = parse_type();
         return Array(lc, dims, type);
+    def parse_vector():
+        nonlocal line_count;
+        lc = line_count;
+        eat_word('VECTOR');
+        expect_eat_spaces_and_check_empty('VECTOR');
+        eat_word('OF');
+        expect_eat_spaces_and_check_empty('VECTOR');
+        type = parse_type();
+        return Vector(lc, type);
     def parse_pointer():
         nonlocal line_count
         lc = line_count;
@@ -554,9 +612,11 @@ def parse_toplevel(s):
         nonlocal s, line_count;
         lc = line_count;
         if s.startswith("ARRAY"):
-            type =  parse_array();
+            type = parse_array();
+        elif s.startswith("VECTOR"):
+            type = parse_vector();
         elif s.startswith("POINTER"):
-            type =  parse_pointer();
+            type = parse_pointer();
         elif s.startswith("RECORD"):
             type = parse_record();
         elif id_in_lib_p():
@@ -739,10 +799,15 @@ def parse_toplevel(s):
                 if s[0] == '[':
                     eat_word('[')
                     eat_spaces_and_check_empty();
-                    y = parse_level_0();
+                    ys = [parse_level_0()];
                     eat_spaces_and_check_empty();
+                    while s[0] == ',':
+                        eat_word(',');
+                        eat_spaces_and_check_empty();
+                        ys.append(parse_level_0());
+                        eat_spaces_and_check_empty();
                     eat_word(']');
-                    res = ArrAccessExpr(lc, x, y);
+                    res = ArrAccessExpr(lc, x, ys);
                 elif s[0] == '(':
                     eat_word('(')
                     eat_spaces_and_check_empty();
@@ -1125,7 +1190,6 @@ def parse_toplevel(s):
         return parse_library();
     die(f"Bad Toplevel @ {line_count}");
 
-
 x = parse_toplevel('''
 PROGRAM test;
   FUNCTION blahblah(
@@ -1140,7 +1204,7 @@ PROGRAM test;
   CONST blahconst1 = 2, blahconst2 = 3;
   BEGIN
     IF x > 0 THEN
-      a[b#c](x)#a[@abc] := (a * b + c * d + c*d^e > 0 < 1 = 0)(abc)
+      a[b#c](x)#a[@abc, 1+2] := (a * b + c * d + c*d^e > 0 < 1 = 0)(abc)
     ELSE
       x := x + 1;
     FOR x, y := 1, 2 STEP 3, 4 TO 10, 20
@@ -1158,4 +1222,4 @@ PROGRAM test;
 VOID
 ''')
 
-print(x);
+print(x)
