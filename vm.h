@@ -16,6 +16,8 @@ typedef size_t freg_t;
 
 typedef uint64_t(*cfunc)(struct machine*);
 
+typedef unsigned char vmchar_t;
+
 #define OPCODE(x) x,
 enum opcode {
   #include "opcode.h"
