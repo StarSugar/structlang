@@ -2,11 +2,13 @@
 #include "switch.h"
 #include <stddef.h>
 #include <getopt.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
 #include <sys/mman.h>
+#include <inttypes.h>
 
 // sc stand for static cast
 
@@ -61,6 +63,12 @@ int vm_strlen_mb(vmchar_t *x, int xlen, int nullendp) {
     y += 1;
   }
   return y;
+}
+
+int vm_strlen_c64(uint64_t *x) {
+  int n = 0;
+  while (*x++ != 0) n++;
+  return n;
 }
 
 int vm_mbtoc64(uint64_t *restrict dst, vmchar_t *restrict src, int len) {
@@ -307,7 +315,7 @@ uint64_t execute(struct machine *machine) {
       machine->mem = mem;
       machine->memlen =memlen;
 
-      uregs[r] = f(machine);
+      uint64_t x = f(machine);
 
       // restore
       for (size_t i = 0;i < 8;i++) {
@@ -316,12 +324,145 @@ uint64_t execute(struct machine *machine) {
       }
       mem = machine->mem;
       memlen = machine->memlen;
+
+      uregs[r] = x;
+
       BREAK;
     }
     CASE(STOP):
       return uregs[op1];
     END_SWITCH
   }
+}
+
+int vm_print_buf(char *buf, size_t bufcnt) {
+  buf[bufcnt] = '\0';
+  return printf("%s", buf);
+}
+
+#define SSSIZ 256 /* small string size */
+
+uint64_t vm_printf(struct machine *machine) {
+  /* WARNING: make sure smallstrbuf could fit a big float number string */
+  char buf[BUFSIZ], smallstrbuf[SSSIZ];
+  int nth_int, nth_flo, nth_arg, cnt,
+      bufcnt, ret, i, j;
+  uint64_t *str, ch, uint;
+  double flo;
+  void *retlab;
+
+  nth_int = 4; nth_flo = 0; nth_arg = 1; cnt = 0;
+  bufcnt = 0;
+  str = &machine->mem[machine->uregs[3]];
+
+  /* the following code use computed goto simulate nested function */
+
+  for (; *str != '\0'; str++) {
+    if ((ch = *str) != '%') {
+      retlab = &&print_normal;
+      goto normal;
+print_normal:
+      (void)1;
+    } else {
+      /* extract the next possible `variable length' argument */
+      uint = nth_int <= 7
+        ? machine->uregs[nth_int]
+        : machine->mem[machine->uregs[1] - nth_arg + 3];
+      flo = nth_flo <= 7
+        ? machine->fregs[nth_flo]
+        : sc_u2f(machine->mem[machine->uregs[1] - nth_arg + 8]);
+      switch (*(++str)) {
+      case '%':
+        ch = '%';
+        retlab = &&print_percent_sign;
+        goto normal;
+print_percent_sign:
+        break;
+      case 's':
+        nth_int += 1;
+        nth_arg += 1;
+        for (j = uint; machine->mem[j] != '\0'; j++) {
+          ch = machine->mem[j];
+          retlab = &&print_string;
+          goto normal;
+print_string:
+          (void)1;
+        }
+        break;
+      case 'd':
+        nth_int += 1;
+        nth_arg += 1;
+        ret = sprintf(smallstrbuf, "%"PRId64, sc_u2i(uint));
+        retlab = &&print_int;
+        goto put;
+print_int:
+        break;
+      case 'c':
+        nth_int += 1;
+        nth_arg += 1;
+        ch = uint;
+        retlab = &&print_char;
+        goto normal;
+print_char:
+        break;
+      case 'u':
+        nth_int += 1;
+        nth_arg += 1;
+        ret = sprintf(smallstrbuf, "%"PRIu64, uint);
+        retlab = &&print_uint;
+        goto put;
+print_uint:
+        break;
+      case 'f':
+        nth_flo += 1;
+        nth_arg += 1;
+        ret = sprintf(smallstrbuf, "%lf", flo);
+        retlab = &&print_flo;
+        goto put;
+print_flo:
+        break;
+      case 'x':
+        nth_int += 1;
+        nth_arg += 1;
+        ret = sprintf(smallstrbuf, "%"PRIx64, uint);
+        retlab = &&print_hex;
+        goto put;
+print_hex:
+        break;
+      case '\0':
+        goto done;
+      default:
+        ch = *str;
+        retlab = &&print_bad_percent_sign;
+        goto normal;
+print_bad_percent_sign:
+        break;
+      }
+    }
+  }
+
+done:
+
+  vm_print_buf(buf, bufcnt);
+  return cnt;
+normal:
+  ret = vm_c64tomb((vmchar_t *)smallstrbuf, ch, SSSIZ);
+  if (ret <= 0) {
+    fprintf(stderr, "vm: String Conversion Error!\n");
+    return -1;
+  }
+put:
+  i = 0;
+  /* WARNING: avoid smallstrbuf start with \0 */
+  do {
+    cnt += 1;
+    if (bufcnt >= BUFSIZ - 1) {
+      vm_print_buf(buf, bufcnt);
+      bufcnt = 0;
+    }
+    buf[bufcnt++] = smallstrbuf[i++];
+  } while (smallstrbuf[i] != '\0');
+  goto *retlab;
 }
 
 void *chunk_alloc(size_t x) {
