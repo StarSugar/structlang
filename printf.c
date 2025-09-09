@@ -19,8 +19,8 @@ int vm_print_buf() {
 }
 
 int put() {
-  int i, ret;
-  for (i = 0; smallstrbuf[i] != '\0'; i++) {
+  int i = 0, ret;
+  while (smallstrbuf[i] != '\0') {
     cnt += 1;
     if (bufcnt >= BUFSIZ - 1) {
       ret = vm_print_buf();
@@ -120,6 +120,6 @@ uint64_t vm_printf(struct machine *machine) {
 
 done:
 
-  vm_print_buf();
+  if ((ret = vm_print_buf()) < 0) return ret;
   return cnt;
 }
