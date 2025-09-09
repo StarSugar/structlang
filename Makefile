@@ -3,8 +3,8 @@
 vm: *.o
 	gcc $^ -Og -o $@
 
-*.o: *.c
-	gcc $^ -Og -c
+*.o: *.c *.h
+	gcc *.c -Og -c
 
 clean:
-	rm -rf vm *.o
+	rm -rf vm *.o *.gch
