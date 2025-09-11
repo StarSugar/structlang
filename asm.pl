@@ -133,7 +133,7 @@ defop "STOP", 33, ureg;
 
 sub trans_a_line {
   my $line = @_ ? $_[0] : $_;
-  return if $line =~ /^ \s*(;.*)?$/;
+  return if $line =~ /^\s*(;.*)?$/;
   chomp $line;
   $line = lc($line);
 
@@ -156,6 +156,8 @@ sub trans_a_line {
       or die "No Such Operation $op \@ $line_count";
 
   my @rands = ($rand1, grep { length } split(/\s*,\s*|\s+/, $rands));
+
+  print pack("Q<", $operations{$op}->{id});
 
   my $i = 0;
   foreach my $f (@{ $operations{$op}->{operands} }) {

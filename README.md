@@ -12,11 +12,11 @@ To clean the directory, use `make clean`.
 - README -- this file;
 - asm.pl -- assembler;
 - complr.py -- compiler;
-- file-io.c -- file related c calls, see below;
-- file-io.h -- file related c calls, see below;
+- file-io.c -- file related c calls, see below C CALLS;
+- file-io.h -- file related c calls, see below C CALLS;
 - opcode.h -- x-macro and description for opcodes;
-- printf.c -- virtual machine `printf` c call implementation, see below;
-- printf.c -- virtual machine `printf` c call implementation, see below;
+- printf.c -- virtual machine `printf` c call implementation, see below C CALLS;
+- printf.c -- virtual machine `printf` c call implementation, see below C CALLS;
 - reinterpret_cast.h -- some reinterpret cast inline functions;
 - switch.h -- a _thread code_ style `switch` statement defnition;
 - thread_local.h -- a `thread_local` macro;
