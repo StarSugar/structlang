@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include "vm.h"
-#include "static_convert.h"
+#include "reinterprete_cast.h"
 #include "utf64.h"
 #include "thread_local.h"
 
@@ -13,12 +13,12 @@ thread_local char buf[BUFSIZ], smallstrbuf[SSSIZ];
 thread_local int bufcnt, cnt;
 thread_local uint64_t ch;
 
-int vm_print_buf() {
+static int vm_print_buf() {
   buf[bufcnt] = '\0';
   return printf("%s", buf);
 }
 
-int put() {
+static int put() {
   int i = 0, ret;
   while (smallstrbuf[i] != '\0') {
     cnt += 1;
@@ -33,7 +33,7 @@ int put() {
   return 0;
 }
 
-int put_ch() {
+static int put_ch() {
   int ret;
   ret = vm_c64tomb((vmchar_t *)smallstrbuf, ch, SSSIZ);
   if (ret <= 0) {
@@ -64,7 +64,7 @@ uint64_t vm_printf(struct machine *machine) {
         : machine->mem[machine->uregs[1] - nth_arg + 3];
       flo = nth_flo <= 7
         ? machine->fregs[nth_flo]
-        : sc_u2f(machine->mem[machine->uregs[1] - nth_arg + 8]);
+        : rc_u2f(machine->mem[machine->uregs[1] - nth_arg + 8]);
       switch (*(++str)) {
       case '%':
         ch = '%';
@@ -81,7 +81,7 @@ uint64_t vm_printf(struct machine *machine) {
       case 'd':
         nth_int += 1;
         nth_arg += 1;
-        sprintf(smallstrbuf, "%"PRId64, sc_u2i(uint));
+        sprintf(smallstrbuf, "%"PRId64, rc_u2i(uint));
         if ((ret = put()) < 0) return ret;
         break;
       case 'c':

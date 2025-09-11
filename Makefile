@@ -1,10 +1,14 @@
 .PHONY: clean
 
+CFLAGS = -Og -c
+LDFLAGS = -Og
+CC = gcc
+
 vm: *.o
-	gcc $^ -Og -o $@
+	$(CC) $^ $(LDFLAGS) -o $@
 
 *.o: *.c *.h
-	gcc *.c -Og -c
+	$(CC) *.c $(CFLAGS)
 
 clean:
-	rm -rf vm *.o *.gch
+	rm -rf vm *.o *.gch *.s

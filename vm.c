@@ -1,6 +1,6 @@
 #include "vm.h"
 #include "switch.h"
-#include "static_convert.h"
+#include "reinterprete_cast.h"
 #include "utf64.h"
 #include "printf.h"
 #include <stddef.h>
@@ -53,7 +53,7 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(FLD):
-      fregs[op1] = sc_u2f(mem[uregs[op2]]);
+      fregs[op1] = rc_u2f(mem[uregs[op2]]);
       pc += 3;
       BREAK;
     CASE(UST):
@@ -61,7 +61,7 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(FST):
-      mem[uregs[op1]] = sc_f2u(fregs[op2]);
+      mem[uregs[op1]] = rc_f2u(fregs[op2]);
       pc += 3;
       BREAK;
     CASE(UIMM):
@@ -69,7 +69,7 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(FIMM):
-      fregs[op1] = sc_u2f(op2);
+      fregs[op1] = rc_u2f(op2);
       pc += 3;
       BREAK;
     CASE(UMOV):
@@ -85,7 +85,7 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(I2F):
-      fregs[op1] = (double)sc_u2i(uregs[op2]);
+      fregs[op1] = (double)rc_u2i(uregs[op2]);
       pc += 3;
       BREAK;
     CASE(F2U):
@@ -93,15 +93,15 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(F2I):
-      uregs[op1] = sc_i2u((int64_t)fregs[op2]);
+      uregs[op1] = rc_i2u((int64_t)fregs[op2]);
       pc += 3;
       BREAK;
     CASE(BT):
-      ptrdiff = sc_u2i(op1);
+      ptrdiff = rc_u2i(op1);
       pc += cond ? ptrdiff : 2;
       BREAK;
     CASE(BF):
-      ptrdiff = sc_u2i(op1);
+      ptrdiff = rc_u2i(op1);
       pc += cond ? 2 : ptrdiff;
       BREAK;
     CASE(UEQ):
@@ -117,7 +117,7 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(IGT):
-      cond = sc_u2i(uregs[op1]) > sc_u2i(uregs[op2]);
+      cond = rc_u2i(uregs[op1]) > rc_u2i(uregs[op2]);
       pc += 3;
       BREAK;
     CASE(FGT):
@@ -129,7 +129,7 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(ILT):
-      cond = sc_u2i(uregs[op1]) < sc_u2i(uregs[op2]);
+      cond = rc_u2i(uregs[op1]) < rc_u2i(uregs[op2]);
       pc += 3;
       BREAK;
     CASE(FLT):
@@ -159,9 +159,9 @@ uint64_t execute(struct machine *machine) {
       pc += 3;
       BREAK;
     CASE(IMUL):
-      ibignum = (__int128)sc_u2i(uregs[op1]) * (__int128)sc_u2i(uregs[op2]);
-      uregs[op1] = sc_i2u((int64_t)ibignum);
-      overflow = sc_i2u((int64_t)(ibignum >> 64));
+      ibignum = (__int128)rc_u2i(uregs[op1]) * (__int128)rc_u2i(uregs[op2]);
+      uregs[op1] = rc_i2u((int64_t)ibignum);
+      overflow = rc_i2u((int64_t)(ibignum >> 64));
       pc += 3;
       BREAK;
     CASE(FMUL):
@@ -178,10 +178,10 @@ uint64_t execute(struct machine *machine) {
     }
     CASE(IDIV): {
       int64_t t1, t2;
-      t1 = sc_u2i(uregs[op1]);
-      t2 = sc_u2i(uregs[op2]);
-      uregs[op1] = sc_i2u(t1/t2);
-      overflow = sc_i2u(t1%t2);
+      t1 = rc_u2i(uregs[op1]);
+      t2 = rc_u2i(uregs[op2]);
+      uregs[op1] = rc_i2u(t1/t2);
+      overflow = rc_i2u(t1%t2);
       pc += 3;
       BREAK;
     };
