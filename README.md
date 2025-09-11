@@ -23,7 +23,7 @@ To clean the directory, use `make clean`.
 - utf64.c -- utf32 like utf64 implementation;
 - utf64.h -- utf32 like utf64 implementation;
 - vm.c -- the virtual machine, include a `main` function;
-- vm.h -- used by vm.c;
+- vm.h -- used by vm.c.
 
 ## ABI
 
