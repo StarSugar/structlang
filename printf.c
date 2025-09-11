@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include "vm.h"
-#include "reinterprete_cast.h"
+#include "reinterpret_cast.h"
 #include "utf64.h"
 #include "thread_local.h"
 

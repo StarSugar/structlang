@@ -1,6 +1,6 @@
 #include "vm.h"
 #include "switch.h"
-#include "reinterprete_cast.h"
+#include "reinterpret_cast.h"
 #include "utf64.h"
 #include "printf.h"
 #include <stddef.h>

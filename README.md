@@ -7,14 +7,23 @@ To build the virtual machine, use `make vm`.
 To clean the directory, use `make clean`.
 
 ## FILES
+- LICENSE -- BSD-2 LICENSE;
 - Makefile -- well, the Makefile, see make(1);
-- opcode.h -- x-macro and description for opcodes;
 - README -- this file;
+- asm.pl -- assembler;
+- complr.py -- compiler;
+- file-io.c -- file related c calls, see below;
+- file-io.h -- file related c calls, see below;
+- opcode.h -- x-macro and description for opcodes;
+- printf.c -- virtual machine `printf` c call implementation, see below;
+- printf.c -- virtual machine `printf` c call implementation, see below;
+- reinterpret_cast.h -- some reinterpret cast inline functions;
 - switch.h -- a _thread code_ style `switch` statement defnition;
+- thread_local.h -- a `thread_local` macro;
+- utf64.c -- utf32 like utf64 implementation;
+- utf64.h -- utf32 like utf64 implementation;
 - vm.c -- the virtual machine, include a `main` function;
 - vm.h -- used by vm.c;
-- ams.pl -- a perl scirpt assembler;
-- complr.py -- the compiler.
 
 ## ABI
 

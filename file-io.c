@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vm.h"
-#include "reinterprete_cast.h"
+#include "reinterpret_cast.h"
 #include "utf64.h"
 
 const size_t FD_COUNT = 2048;
