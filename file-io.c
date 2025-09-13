@@ -19,7 +19,7 @@ int vm_file_io_init() {
 
   i = 0;
   while (i < FD_COUNT) {
-    fds[i] = NULL;
+    fds[i++] = NULL;
   }
 
   fds[0] = stdin;
@@ -110,10 +110,10 @@ uint64_t vm_fopen(struct machine *vm) {
 
   fd = -1;
 
-  cname = collmb(name, _cname, BUFSIZ);
+  cname = collmb(name, _cname, sizeof(_cname));
   if (cname == NULL)
     goto exit1;
-  cmode = collmb(mode, _cmode, BUFSIZ);
+  cmode = collmb(mode, _cmode, sizeof(_cmode));
   if (cmode == NULL)
     goto exit2;
 
@@ -204,7 +204,7 @@ uint64_t vm_writetxt(struct machine *vm) {
       return -1;
     ret = fwrite(buf, sizeof(char), bufcnt, f);
     if (ret != bufcnt) {
-      while ((transcnt = vm_strlen_mb(buf, ret--, 0)) < 0);
+      while (ret >= 0 && (transcnt = vm_strlen_mb(buf, ret, 0)) < 0) ret--;
       return wrtcnt + transcnt;
     }
     wrtcnt += transcnt;
@@ -213,7 +213,7 @@ uint64_t vm_writetxt(struct machine *vm) {
   return wrtcnt;
 }
 
-uint64_t vm_writedata(struct machine *vm) {
+uint64_t vm_writebytes(struct machine *vm) {
   int64_t fd;
   uint64_t *data, len;
 
@@ -289,7 +289,7 @@ done:
   return readcnt;
 }
 
-uint64_t vm_readdata(struct machine *vm) {
+uint64_t vm_readbytes(struct machine *vm) {
   int64_t fd;
   uint64_t *dst, len;
 
