@@ -14,12 +14,14 @@ def die(x):
     sys.exit(1)
 
 def remove_comment(text):
+    i = 0; f = append1; res = ""
     def append1():
         nonlocal i, text, res
         if text[i] == '$':
             f = elim;
         elif text[i] == '"':
             f = str;
+            res += '"'
         else:
             res += text[i]
     def elim():
@@ -47,12 +49,12 @@ def remove_comment(text):
         if text[i] == '\n':
             f = append1;
     def str():
-        nonlocal i, text
+        nonlocal i, text, res
         if text.startswith('\\"'):
             i += 1;
         elif text[i] == '"':
             f = append1;
-    i = 0; f = append1; res = ""
+        res += text[i]
     while i < len(text):
         f();
         i += 1;
