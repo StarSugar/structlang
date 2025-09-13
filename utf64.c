@@ -83,18 +83,34 @@ int vm_c64tomb(vmchar_t *restrict dst, uint64_t src, int len) {
   return -1;
 }
 
-ssize_t vm_strc64tomb(vmchar_t *dst, uint64_t *src, size_t dstlen) {
+ssize_t vm_strc64tomb(vmchar_t *dst, size_t *dstlen, uint64_t *src) {
   ssize_t cnt;
   int ret;
 
   cnt = 0;
   while (*src != '\0') {
-    ret = vm_c64tomb(dst, *src, dstlen);
+    ret = vm_c64tomb(dst, *src, *dstlen);
     if (ret < 0)
       return -1;
     if (ret == 0)
       return cnt;
-    cnt++; dst += ret; dstlen -= ret; src++;
+    cnt++; dst += ret; *dstlen -= ret; src++;
+  }
+  return cnt;
+}
+
+ssize_t vm_mc64tomb(vmchar_t *dst, size_t *dstlen, uint64_t *src, size_t srclen) {
+  ssize_t cnt;
+  int ret;
+
+  cnt = 0;
+  while (srclen > 0) {
+    ret = vm_c64tomb(dst, *src, *dstlen);
+    if (ret < 0)
+      return -1;
+    if (ret == 0)
+      return cnt;
+    cnt++; dst += ret; *dstlen -= ret; src++; srclen--;
   }
   return cnt;
 }

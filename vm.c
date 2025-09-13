@@ -1,8 +1,4 @@
 #include "vm.h"
-#include "switch.h"
-#include "reinterpret_cast.h"
-#include "utf64.h"
-#include "printf.h"
 #include <stddef.h>
 #include <getopt.h>
 #include <stdint.h>
@@ -11,6 +7,11 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/mman.h>
+#include "switch.h"
+#include "reinterpret_cast.h"
+#include "utf64.h"
+#include "printf.h"
+#include "file-io.h"
 
 // ensure that a machine is running in only one place at a time
 uint64_t execute(struct machine *machine) {
@@ -200,7 +201,7 @@ uint64_t execute(struct machine *machine) {
         machine->fregs[i] = fregs[i];
       }
       machine->mem = mem;
-      machine->memlen =memlen;
+      machine->memlen = memlen;
 
       uint64_t x = f(machine);
 
@@ -293,6 +294,14 @@ static struct option opts[] = {
   {NULL,    0,                 NULL, 0},
 };
 
+uint64_t vm_bytes(struct machine *vm) {
+  return (uint64_t)vm->memlen;
+}
+
+uint64_t vm_imgsiz(struct machine *vm) {
+  return vm->imglen;
+}
+
 int main(int argc, char *argv[]) {
   size_t bytes = 64 * 1024 * 1024;
   char ch;
@@ -317,6 +326,8 @@ int main(int argc, char *argv[]) {
   if (argc == 1 || optind == argc)
     usage(prog);
 
+  vm_file_io_init();
+
   char *fname = argv[optind];
 
   FILE *f;
@@ -338,6 +349,17 @@ int main(int argc, char *argv[]) {
     exit(errno);
   }
   memset(machine.mem, 0, sizeof(int64_t) * bytes);
+
+  machine.mem[ 1] = (uint64_t)vm_printf;
+  machine.mem[ 2] = (uint64_t)vm_fopen;
+  machine.mem[ 3] = (uint64_t)vm_fclose;
+  machine.mem[ 4] = (uint64_t)vm_fseek;
+  machine.mem[ 5] = (uint64_t)vm_writetxt;
+  machine.mem[ 6] = (uint64_t)vm_writebytes;
+  machine.mem[ 7] = (uint64_t)vm_readtxt;
+  machine.mem[ 8] = (uint64_t)vm_readbytes;
+  machine.mem[ 9] = (uint64_t)vm_bytes;
+  machine.mem[10] = (uint64_t)vm_imgsiz;
 
   size_t sret = fread(machine.mem + 1024, sizeof(int64_t), bytes - 1024, f);
   if (ferror(f)) {
