@@ -204,6 +204,7 @@ uint64_t vm_writetxt(struct machine *vm) {
       return -1;
     ret = fwrite(buf, sizeof(char), bufcnt, f);
     if (ret != bufcnt) {
+      /* ignore truncated tail utf-8 bytes, count length */
       while (ret >= 0 && (transcnt = vm_strlen_mb(buf, ret, 0)) < 0) ret--;
       return wrtcnt + transcnt;
     }
@@ -265,13 +266,16 @@ uint64_t vm_readtxt(struct machine *vm) {
 retry:
   if (readcnt >= len)
     goto done;
+
+  /* get first byte and the length of a character */
   if (skip_bad_char(f) < 0)
     return -1;
   buf[0] = rc_c2vc(fgetc(f));
   if (buf[0] == rc_c2vc(EOF))
     return readcnt;
-
   bufcnt = vm_mblen(buf[0]);
+
+  /* collect the rest of the characters */
   for (i = 1; i < bufcnt; i++) {
     buf[i] = rc_c2vc(fgetc(f));
     if (buf[i] == rc_c2vc(EOF))
