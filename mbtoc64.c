@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <assert.h>
 #include "utf64.h"
 
 static void die(char *fmt, ...) {
@@ -24,9 +25,10 @@ int main(int argc, char *argv[]) {
   in_len = out_len = 0;
 
 read_print_loop:
-  in_len += fread(in + in_len, sizeof(char), BUFSIZ - in_len, stdin);
+  ret = fread(in + in_len, sizeof(char), BUFSIZ - in_len, stdin);
   if (ferror(stdin))
     die("%s: %s: while reading from stdin\n", argv[0], strerror(errno));
+  in_len += ret;
   in_transed = 0;
 
   for(;;) {
@@ -37,8 +39,11 @@ read_print_loop:
       out_len = 0;
     }
 
+    assert(in_len >= in_transed);
     /* if the next utf8 character is not completely read */
-    if (vm_mblen(*(in + in_transed)) > in_len - in_transed) {
+    if (in_len == in_transed ||
+        vm_mblen(*(in + in_transed)) > in_len - in_transed
+    ) {
       memmove(in, in + in_transed, in_len - in_transed);
       in_len = in_len - in_transed;
       break;

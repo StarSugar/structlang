@@ -3,11 +3,15 @@
 #include "utf64.h"
 
 int vm_mblen(vmchar_t x) {
+  unsigned int y;
+  if (x == 0xff)
+    return -1;
   if (x >> 7 == 0)
     return 1;
   if ((x >> 6 & 1) == 0)
     return -1;
-  return __builtin_clz(~x);
+  y = x;
+  return __builtin_clz((~y) << 24);
 }
 
 int vm_strlen_mb(vmchar_t *x, int xlen, int nullendp) {
@@ -30,7 +34,8 @@ int vm_strlen_c64(uint64_t *x) {
 }
 
 int vm_mbtoc64(uint64_t *restrict dst, vmchar_t *restrict src, int len) {
-  uint64_t acc, chlen;
+  uint64_t acc;
+  int chlen;
   chlen = vm_mblen(src[0]);
   if (chlen < 0)
     return -1;
