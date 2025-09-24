@@ -51,11 +51,11 @@ def iota(x=0):
         i += 1;
 
 def mkstrimg():
-    global fin, fout, args, UST, UIMM, REG3;
-    for _ in range(args.position):
+    global fin, fout, args, UST, UIMM, REG3, PRESERVE_SPACE;
+    for _ in range(args.position - PRESERVE_SPACE):
         fout.write(struct.pack('<Q', 0))
     data = fin.read();
-    for i, p in zip(range(0, len(data), 8), iota(args.position)):
+    for i, p in zip(range(0, len(data), 8), iota(args.position - PRESERVE_SPACE)):
         fout.write(UIMM);
         fout.write(REG3);
         fout.write(data[i:i+8].ljust(8, b'\x00'));
