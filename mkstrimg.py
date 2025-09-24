@@ -51,9 +51,9 @@ def iota(x=0):
         i += 1;
 
 def mkstrimg():
-    global fin, fout, args, UST, UIMM, REG3, PRESERVE_SPACE;
+    global fin, fout, args, UST, UIMM, REG3;
     data = fin.read();
-    for i, p in zip(range(0, len(data), 8), iota(args.position - PRESERVE_SPACE)):
+    for i, p in zip(range(0, len(data), 8), iota(args.position)):
         fout.write(UIMM);
         fout.write(REG3);
         fout.write(data[i:i+8].ljust(8, b'\x00'));
