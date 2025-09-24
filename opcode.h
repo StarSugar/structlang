@@ -4,15 +4,15 @@ OPCODE(UST) // st(ureg_t, reg_t) mem[regs[$1] = regs[$2]
 OPCODE(FST)
 OPCODE(UIMM) // imm(ureg_t, uimm_t/iimm_t/fimm_t) regs[$1] = $2
 OPCODE(FIMM)
-OPCODE(UMOV) // imm(reg_t, reg_t) regs[$1] = regs[$2]
+OPCODE(UMOV) // mov(reg_t, reg_t) regs[$1] = regs[$2]
 OPCODE(FMOV)
 OPCODE(U2F) // x2y(reg_t, reg_t) regs[$1) = (type)regs[$2]
 OPCODE(I2F)
 OPCODE(F2U)
 OPCODE(F2I)
 OPCODE(BT) // bt(ptrdiff_t) branch, jump relatively to $1 if true
-OPCODE(BF) // bf(ptrdiff_t) branch, jump relatively to $1 if false
-           // for regular jump) set pc
+OPCODE(BF) // bf(ptrdiff_t) branch, jump relatively to $1 if false for regular
+           // jump) set pc
 OPCODE(UEQ) // eq(reg_t, reg_t) regs[$1] == regs[$2]
 OPCODE(FEQ)
 OPCODE(UGT) // gt(reg_t, reg_t) regs[$1] > regs[$2]
