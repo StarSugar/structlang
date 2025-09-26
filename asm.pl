@@ -2,6 +2,16 @@
 
 use bignum;
 
+sub make_counter {
+  my $x = @_ ? shift : 0;
+  sub {
+    my $y = @_ ? shift : 1;
+    my $z = $x;
+    $x += $y;
+    $z;
+  }
+}
+
 # general registers, or unsigned integer registers
 our @uregs = qw(r0 r1 r2 r3 r4 r5 r6 r7);
 our %uregs = map {$_ => $_} @uregs;
@@ -84,52 +94,18 @@ sub fimm {
 
 our %operations = ();
 
+our $operator_counter = make_counter;
 sub defop {
   my $name = shift;
-  my $id = shift;
   my @operands = @_;
   $operations{$name} = {
     name => $name,
-    id => $id,
+    id => $operator_counter->(),
     operands=>\@operands
   };
 }
 
-# for other details, see opcode.h
-defop  "ULD",  0, ureg, ureg;
-defop  "FLD",  1, freg, ureg;
-defop  "UST",  2, ureg, ureg;
-defop  "FST",  3, ureg, freg;
-defop "UIMM",  4, ureg,  imm;
-defop "FIMM",  5, freg, fimm;
-defop "UMOV",  6, ureg, ureg;
-defop "FMOV",  7, freg, freg;
-defop  "U2F",  8, freg, ureg;
-defop  "I2F",  9, freg, ureg;
-defop  "F2U", 10, ureg, freg;
-defop  "F2I", 11, ureg, freg;
-defop   "BT", 12, iimm;
-defop   "BF", 13, iimm;
-defop  "UEQ", 14, ureg, ureg;
-defop  "FEQ", 15, freg, freg;
-defop  "UGT", 16, ureg, ureg;
-defop  "IGT", 17, ureg, ureg;
-defop  "FGT", 18, freg, freg;
-defop  "ULT", 19, ureg, ureg;
-defop  "ILT", 20, ureg, ureg;
-defop  "FLT", 21, freg, freg;
-defop "UADD", 22, ureg, ureg;
-defop "FADD", 23, freg, freg;
-defop "USUB", 24, ureg, ureg;
-defop "FSUB", 25, freg, freg;
-defop "UMUL", 26, ureg, ureg;
-defop "IMUL", 27, ureg, ureg;
-defop "FMUL", 28, freg, freg;
-defop "UDIV", 29, ureg, ureg;
-defop "IDIV", 30, ureg, ureg;
-defop "FDIV", 31, freg, freg;
-defop "CALL", 32, ureg, ureg;
-defop "STOP", 33, ureg;
+do "./opcode.pl" or die "Unable to do opcode.pl";
 
 sub trans_a_line {
   my $line = @_ ? $_[0] : $_;

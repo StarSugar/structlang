@@ -12,18 +12,24 @@ To clean the directory, use `make clean`.
 - README -- this file;
 - asm.pl -- assembler;
 - complr.py -- compiler;
+- gen-opcode-related.pl -- opcode related files generator, see below
 - file-io.c -- file related c calls, see below C CALLS;
 - file-io.h -- file related c calls, see below C CALLS;
-- opcode.h -- x-macro and description for opcodes;
+- mbtoc64.c -- (useless) read utf8 string from stdin and output utf64 to stdout
+- mkstrimg.py -- (useless) convert string to utf64 code image, see -h
+- opcode.pl -- opcodes definition and descriptions, see below
 - printf.c -- virtual machine `printf` c call implementation, see below C CALLS;
 - printf.c -- virtual machine `printf` c call implementation, see below C CALLS;
 - reinterpret_cast.h -- some reinterpret cast inline functions;
-- switch.h -- a _thread code_ style `switch` statement defnition;
+- switch.h -- a _thread code_ style `switch` statement definition;
 - thread_local.h -- a `thread_local` macro;
 - utf64.c -- utf32 like utf64 implementation;
 - utf64.h -- utf32 like utf64 implementation;
 - vm.c -- the virtual machine, include a `main` function;
 - vm.h -- used by vm.c.
+
+_opcode.pl_ contains definitions of opcodes, it is used by _asm.pl_ with `do` magic,
+and used by _gen-opcode-related.pl_, to generate _opcode.h_.
 
 ## ABI
 
