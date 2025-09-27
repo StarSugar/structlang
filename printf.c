@@ -40,6 +40,7 @@ static int put_ch() {
     fprintf(stderr, "vm: String Conversion Error!\n");
     return ret;
   }
+  smallstrbuf[ret] = '\0';
   return put();
 }
 

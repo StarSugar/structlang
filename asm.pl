@@ -1,6 +1,9 @@
 #! /usr/bin/env perl
 
 use bignum;
+use File::Basename qw(dirname);
+
+our $script_dir = dirname(__FILE__);
 
 sub make_counter {
   my $x = @_ ? shift : 0;
@@ -105,7 +108,9 @@ sub defop {
   };
 }
 
-do "./opcode.pl" or die "Unable to do opcode.pl";
+$! = "";
+$@ = "";
+do "$script_dir/opcode.pl" or die "Unable to do opcode.pl $! $@";
 
 sub trans_a_line {
   my $line = @_ ? $_[0] : $_;

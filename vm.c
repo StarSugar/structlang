@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include "switch.h"
 #include "reinterpret_cast.h"
 #include "utf64.h"
@@ -48,7 +49,7 @@ uint64_t execute(struct machine *machine) {
   for (;;) {
     SWITCH_WITH
 #include "opcode.h"
-    BEGIN_SWITCH(pc)
+    BEGIN_SWITCH(mem[pc])
     CASE(ULD):
       uregs[op1] = mem[uregs[op2]];
       pc += 3;
@@ -192,7 +193,7 @@ uint64_t execute(struct machine *machine) {
       BREAK;
     CASE(CALL): {
       ureg_t r = op1;
-      cfunc f = (void *)uregs[op2];
+      cfunc f = (void *)mem[uregs[op2]];
       pc += 3;
 
       // store
@@ -224,17 +225,18 @@ uint64_t execute(struct machine *machine) {
 }
 
 void *chunk_alloc(size_t x) {
-  if (x % BUFSIZ != 0) {
-    size_t n = x / BUFSIZ;
-    x = (n + 1) * BUFSIZ;
+  const int PAGESIZE = getpagesize();
+  if (x % PAGESIZE != 0) {
+    size_t n = x / PAGESIZE;
+    x = (n + 1) * PAGESIZE;
   }
 
-  void   *no_addr, *addr, *chunk;
+  char   *no_addr, *addr, *chunk;
   size_t len, alloc_len;
   int    prot, prop, no_fd, no_off, ret;
 
   no_addr  = NULL;
-  alloc_len = x + BUFSIZ * 2;
+  alloc_len = x + PAGESIZE * 2;
   prot      = PROT_READ | PROT_WRITE;
   prop      = MAP_ANON | MAP_PRIVATE;
   no_fd     = -1;
@@ -246,7 +248,7 @@ void *chunk_alloc(size_t x) {
   }
 
   addr = chunk;
-  len = BUFSIZ;
+  len = PAGESIZE;
   prot = PROT_NONE;
   ret = mprotect(addr, len, prot);
 
@@ -255,44 +257,31 @@ void *chunk_alloc(size_t x) {
     return NULL;
   }
 
-  addr = chunk + BUFSIZ + x;
-  mprotect(addr, len, prot);
+  addr = chunk + PAGESIZE + x;
+  ret = mprotect(addr, len, prot);
 
   if (ret == -1) {
     munmap(chunk, alloc_len);
     return NULL;
   }
 
-  return chunk + BUFSIZ;
+  return chunk + PAGESIZE;
 }
 
 void chunk_free(void *chunk, size_t x) {
-  if (x % BUFSIZ != 0) {
-    size_t n = x / BUFSIZ;
-    x = (n + 1) * BUFSIZ;
+  const int PAGESIZE = getpagesize();
+  if (x % PAGESIZE != 0) {
+    size_t n = x / PAGESIZE;
+    x = (n + 1) * PAGESIZE;
   }
 
   void   *addr;
   size_t len;
   
-  addr = chunk - BUFSIZ;
-  len = x + BUFSIZ * 2;
+  addr = chunk - PAGESIZE;
+  len = x + PAGESIZE * 2;
   munmap(addr, len);
 }
-
-void usage(const char *prog) {
-  fprintf(stderr,
-    "Usage:\t%s [-b bytes | --bytes bytes] file\n"
-    "-b --bytes\tspecify bytes number of the vm, the vm use 64 bit byte\n",
-    prog
-  );
-  exit(0);
-}
-
-static struct option opts[] = {
-  {"bytes", required_argument, NULL, 'b'},
-  {NULL,    0,                 NULL, 0},
-};
 
 uint64_t vm_bytes(struct machine *vm) {
   return (uint64_t)vm->memlen;
@@ -302,13 +291,27 @@ uint64_t vm_imgsiz(struct machine *vm) {
   return vm->imglen;
 }
 
+void usage(const char *prog) {
+  fprintf(stderr,
+    "Usage:\t%s [-b bytes | --bytes bytes] file\n"
+    "-b --bytes\tspecify bytes number of the vm, default is 64MB, the vm use 64 bit\n\t\tbyte\n",
+    prog
+  );
+  exit(0);
+}
+
+static struct option opts[] = {
+  {"bytes", optional_argument, NULL, 'b'},
+  {NULL,    0,                 NULL, 0},
+};
+
 int main(int argc, char *argv[]) {
   size_t bytes = 64 * 1024 * 1024;
   char ch;
 
   char *prog = argv[0];
 
-  while ((ch = getopt_long(argc, argv, "m:", opts, NULL)) != -1) {
+  while ((ch = getopt_long(argc, argv, "b:", opts, NULL)) != -1) {
     switch (ch) {
     case 'b':
       errno = 0;
@@ -331,7 +334,7 @@ int main(int argc, char *argv[]) {
   char *fname = argv[optind];
 
   FILE *f;
-  if (strcmp(fname, "-"))
+  if (!strcmp(fname, "-"))
     f = stdin;
   else
     f = fopen(fname, "r");
@@ -343,11 +346,12 @@ int main(int argc, char *argv[]) {
   struct machine machine;
   memset(&machine, 0, sizeof(machine));
   machine.memlen = bytes;
-  machine.mem = chunk_alloc(bytes);
+  machine.mem = chunk_alloc(sizeof(int64_t) * bytes);
   if (machine.mem == NULL) {
     perror(prog);
     exit(errno);
   }
+  machine.mem[0] = 0;
   memset(machine.mem, 0, sizeof(int64_t) * bytes);
 
   machine.mem[ 1] = (uint64_t)vm_printf;
@@ -366,7 +370,7 @@ int main(int argc, char *argv[]) {
     perror(prog);
     exit(errno);
   }
-  if (feof(f)) {
+  if (!feof(f)) {
     fprintf(stderr, "vm: address space is full\n");
     exit(errno);
   }

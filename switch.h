@@ -7,7 +7,7 @@
 # define SWITCH_WITH { void *__switch_labels__[] = {
 # define BEGIN_SWITCH(x) }; goto *__switch_labels__[x];
 # define CASE(x) __LABEL__ ## x
-# define BREAK goto *__switch_labels__[uregs[PC]];
+# define BREAK goto *__switch_labels__[mem[uregs[PC]]];
 # define END_SWITCH };
 #else
 # define SWITCH_WITH

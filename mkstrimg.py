@@ -8,16 +8,18 @@ import struct
 
 UIMM = struct.pack('<Q', 4)
 REG3 = struct.pack('<Q', 3)
+REG4 = struct.pack('<Q', 4)
 UST = struct.pack('<Q', 2)
-PRESERVE_SPACE = 1000
+PRESERVE_SPACE = 1024
 
 script_dir = Path(__file__).resolve().parent
 
 parser = Parser(prog='mkstrimg.py',
-                description='read a file, convert it to utf64 code image, and output');
-parser.add_argument('input', help='input file name, - means stdout');
+                description='Read a file, convert its contents to machine codes\
+                ,and output. The codes put utf64 string at specific location.');
+parser.add_argument('input', help='input file name, - means stdin');
 parser.add_argument('position', type=int,
-                    help='speicific position of the generated code image');
+                    help='speicific position');
 parser.add_argument('-o', '--output', nargs=1, default=['-'],
                     help='output file name, - means stdout, default is -');
 parser.add_argument('-e', '--encode', nargs=1, default=['utf8'],
@@ -57,8 +59,11 @@ def mkstrimg():
         fout.write(UIMM);
         fout.write(REG3);
         fout.write(data[i:i+8].ljust(8, b'\x00'));
-        fout.write(UST);
+        fout.write(UIMM);
+        fout.write(REG4);
         fout.write(struct.pack('<Q', p));
+        fout.write(UST);
+        fout.write(REG4);
         fout.write(REG3);
     fin.close();
     fout.close();

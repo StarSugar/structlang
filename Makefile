@@ -1,7 +1,7 @@
 .PHONY: clean
 
-CFLAGS = -Og -c
-LDFLAGS = -Og
+CFLAGS = -c -g
+LDFLAGS = -g
 CC = cc
 
 OBJS = file-io.o mbtoc64.o printf.o utf64.o vm.o
